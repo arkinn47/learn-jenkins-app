@@ -46,8 +46,8 @@ pipeline {
             steps {
                 sh '''
                     echo "Installing zip..."
-                    apk --no-cache zip
-                    npm install -g netlify-cli
+                    apk add --no-cache zip
+                    npm install netlify-cli
                     node_modules/.bin/netlify --version
                     zip -r build.zip build
                 '''
