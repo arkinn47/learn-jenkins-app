@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Build') {
             agent {
                 docker {
@@ -20,18 +21,51 @@ pipeline {
                 '''
             }
         }
-        stage('Test' ) {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
+        stage('Tests' ) {
+            parallel {
+                stage('United tests'){
+                    agent {
+                        docker {
+                            image 'node:18-alpine'
+                            reuseNode true
+                        }
+                    }
+                    
+                    steps {
+                        sh '''
+                            #test -f build/index.html
+                            npm test
+                        '''
+                    }
+                    post {
+                        always {
+                            junit 'jest-results/junit.xml'
+                        }
+                    }
                 }
-            }
-            steps {
-                sh '''
-                    test -f build/index.html
-                    npm test
-                '''
+
+                stage ('E2E') {
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright:vl.39.0-jammy'
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                        sh '''
+                            npm install serve
+                            node_modules/.bin/serve -s build &
+                            sleep 10
+                            npx playwright test --reporter=html
+                        '''
+                    }
+
+                    post {
+                        always {
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                        }
+                    }
+                }
             }
         }
 
@@ -39,19 +73,16 @@ pipeline {
             agent {
                 docker {
                     image 'node: 18-alpine'
-                    args '-user root'
+                    //args '-user root'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    echo "Installing zip..."
-                    apk add --no-cache zip
-                    npm install netlify-cli
+                    npm install netlify-cli@20.1.1
                     node_modules/.bin/netlify --version
-                    zip -r build.zip build
                 '''
-                archiveArtifact artifacts: 'build.zip', fingerprint: true
+                //archiveArtifact artifacts: 'build.zip', fingerprint: true
             }
         }
     }
