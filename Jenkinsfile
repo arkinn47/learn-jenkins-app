@@ -34,24 +34,25 @@ pipeline {
                 '''
             }
         }
+
         stage('Deploy') {
             agent {
                 docker {
                     image 'node: 18-alpine'
+                    args '-user root'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
+                    echo "Installing zip..."
+                    apk --no-cache zip
                     npm install -g netlify-cli
                     node_modules/.bin/netlify --version
+                    zip -r build.zip build
                 '''
+                archiveArtifact artifacts: 'build.zip', fingerprint: true
             }
-        }
-    }
-    post {
-        always {
-            junit 'test-results/junit.xml'
         }
     }
 }
