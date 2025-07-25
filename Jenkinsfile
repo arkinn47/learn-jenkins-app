@@ -47,7 +47,7 @@ pipeline {
                 stage ('E2E') {
                     agent {
                         docker {
-                            image 'mcr.microsoft.com/playwright:vl.39.0-jammy'
+                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                             reuseNode true
                         }
                     }
@@ -83,7 +83,6 @@ pipeline {
                     npm install netlify-cli@20.1.1
                     node_modules/.bin/netlify --version
                 '''
-                //archiveArtifact artifacts: 'build.zip', fingerprint: true
             }
         }
     }
