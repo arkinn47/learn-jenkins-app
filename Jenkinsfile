@@ -30,7 +30,7 @@ pipeline {
                             reuseNode true
                         }
                     }
-                    
+
                     steps {
                         sh '''
                             #test -f build/index.html
@@ -39,7 +39,7 @@ pipeline {
                     }
                     post {
                         always {
-                            junit 'jest-results/junit.xml'
+                            junit 'test-results/junit.xml'
                         }
                     }
                 }
